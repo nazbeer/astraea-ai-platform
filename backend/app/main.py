@@ -40,6 +40,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://astraea-ai.vercel.app",
+        "https://aiastraea.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
