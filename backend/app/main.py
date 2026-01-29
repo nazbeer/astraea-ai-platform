@@ -39,6 +39,10 @@ try:
 except Exception:
     rag = RAG([]) # Fallback
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 # --- Auth Endpoints ---
 @app.post("/auth/signup")
 def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
