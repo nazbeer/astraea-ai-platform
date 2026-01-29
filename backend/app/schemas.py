@@ -6,9 +6,8 @@ class ChatRequest(BaseModel):
     message: str
     model: Optional[str] = "gpt-4o-mini"
 
-class UserCreate(BaseModel):
-    username: str
-    password: str
+class GoogleAuthRequest(BaseModel):
+    token: str  # Google OAuth token from frontend
 
 class Token(BaseModel):
     access_token: str

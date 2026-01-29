@@ -16,12 +16,12 @@ def authenticate(token: str = Depends(oauth2_scheme), db: Session = Depends(get_
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        email: str = payload.get("sub")  # Changed from username to email
+        if email is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(User).filter(User.email == email).first()  # Changed from username to email
     if user is None:
         raise credentials_exception
     return user
