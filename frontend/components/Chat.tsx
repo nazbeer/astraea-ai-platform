@@ -13,6 +13,7 @@ export default function Chat({ sessionId, onSessionCreated }: ChatProps) {
     const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const [model, setModel] = useState("gpt-4o-mini");
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -54,7 +55,7 @@ export default function Chat({ sessionId, onSessionCreated }: ChatProps) {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({ message: userMessage, session_id: sessionId }),
+                body: JSON.stringify({ message: userMessage, session_id: sessionId, model: model }),
             });
 
             if (!response.body) throw new Error("No response body");
@@ -114,10 +115,21 @@ export default function Chat({ sessionId, onSessionCreated }: ChatProps) {
                 </div>
                 <div>
                     <h2 className="font-bold text-white">Astraea AI</h2>
-                    <p className="text-xs text-green-400 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                        Online
-                    </p>
+                    <div className="flex items-center gap-2">
+                        <p className="text-xs text-green-400 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                            Online
+                        </p>
+                        <select
+                            value={model}
+                            onChange={(e) => setModel(e.target.value)}
+                            className="bg-gray-800 text-xs text-gray-300 border border-gray-700 rounded px-2 py-0.5 outline-none focus:border-blue-500"
+                        >
+                            <option value="gpt-4o-mini">GPT-4o Mini</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            <option value="gpt-4">GPT-4 (Pro)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -142,8 +154,8 @@ export default function Chat({ sessionId, onSessionCreated }: ChatProps) {
 
                         <div
                             className={`max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed shadow-md ${msg.role === 'user'
-                                    ? 'bg-blue-600 text-white rounded-br-none'
-                                    : 'bg-gray-800/80 border border-gray-700/50 text-gray-100 rounded-bl-none'
+                                ? 'bg-blue-600 text-white rounded-br-none'
+                                : 'bg-gray-800/80 border border-gray-700/50 text-gray-100 rounded-bl-none'
                                 }`}
                         >
                             {msg.content}

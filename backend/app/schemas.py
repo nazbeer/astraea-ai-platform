@@ -4,6 +4,7 @@ from typing import Optional
 class ChatRequest(BaseModel):
     session_id: Optional[int] = None
     message: str
+    model: Optional[str] = "gpt-4o-mini"
 
 class UserCreate(BaseModel):
     username: str

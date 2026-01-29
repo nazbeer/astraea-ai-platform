@@ -8,7 +8,7 @@ import os
 if not os.path.exists("./storage"):
     os.makedirs("./storage")
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./storage/sql_app.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./storage/astraea.db"
 
 
 

@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+import json
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
@@ -12,9 +13,10 @@ from app.database import engine, get_db
 from app.security import authenticate
 from app.rag import RAG
 from app.agent import build_messages
-from app.llm import stream_chat
+from app.llm import stream_chat, chat_completion
 from app.config import settings
 from app.core_logging import logger
+from app.tools import TOOLS_DEFINITION, AVAILABLE_TOOLS
 
 # Create Tables
 models.Base.metadata.create_all(bind=engine)
@@ -58,8 +60,19 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    # Return additional info if needed, but token response is standard
     access_token = auth.create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
+
+# --- User & Profile Endpoints ---
+@app.get("/profile")
+def get_profile(current_user: models.User = Depends(authenticate), db: Session = Depends(get_db)):
+    return {
+        "username": current_user.username,
+        "request_count": current_user.request_count,
+        "tier": current_user.tier,
+        "is_premium": bool(current_user.is_premium)
+    }
 
 # --- History Endpoints ---
 @app.get("/history")
@@ -76,9 +89,15 @@ def get_session_history(session_id: int, current_user: models.User = Depends(aut
     return [{"role": m.role, "content": m.content} for m in session.messages]
 
 
-# --- Chat Endpoint ---
+# --- Chat Endpoint (Agentic) ---
 @app.post("/chat")
 async def chat(req: schemas.ChatRequest, current_user: models.User = Depends(authenticate), db: Session = Depends(get_db)):
+    # 0. Increment Usage
+    current_user.request_count += 1
+    db.commit()
+    
+    # Check Premium limits (optional - skipped for now)
+
     # 1. Get or Create Session
     if req.session_id:
         session = db.query(models.ChatSession).filter(models.ChatSession.id == req.session_id, models.ChatSession.user_id == current_user.id).first()
@@ -96,34 +115,68 @@ async def chat(req: schemas.ChatRequest, current_user: models.User = Depends(aut
     db.add(user_msg)
     db.commit()
 
-    # 3. Retrieve Context & History for LLM
-    # Convert DB messages to list of dicts for agent
+    # 3. Build Context
     history = [{"role": m.role, "content": m.content} for m in session.messages]
-    # Remove the just-added message from history passed to LLM (or include it? build_messages appends user msg separately)
-    # build_messages expects previous memory. Logic in agent.py: msgs.extend(memory) then appends user msg.
-    # So we should exclude the last message we just added from 'memory' passed to build_messages
+    # Remove the just-added user message from history because build_messages adds it
     memory_for_llm = history[:-1] 
 
-    context = rag.retrieve(req.message)
+    context = rag.retrieve(req.message) # Keep RAG as context injection
     messages = build_messages(req.message, memory_for_llm, context)
 
-    # 4. Stream & Save Assistant Message
+    # 4. Agent Loop
+    # Step 1: Check for Tools (Synchronous)
+    response = chat_completion(messages, tools=TOOLS_DEFINITION, model=req.model)
+    response_message = response.choices[0].message
+    tool_calls = response_message.tool_calls
+
+    if tool_calls:
+        # Append assistant's "tool call" message to history
+        messages.append(response_message)
+        
+        # Execute tools
+        for tool_call in tool_calls:
+            function_name = tool_call.function.name
+            function_args = json.loads(tool_call.function.arguments)
+            
+            # Execute
+            function_to_call = AVAILABLE_TOOLS.get(function_name)
+            if function_name == "rag_retrieve":
+                 # Special handling if we made RAG a tool (optional, but RAG is already injected above)
+                 function_response = rag.retrieve(function_args.get("query"))
+                 function_response = "\n".join(function_response)
+            elif function_to_call:
+                try:
+                    function_response = str(function_to_call(**function_args))
+                except Exception as e:
+                    function_response = f"Error: {e}"
+            else:
+                function_response = "Error: Tool not found"
+
+            # Append tool result
+            messages.append(
+                {
+                    "tool_call_id": tool_call.id,
+                    "role": "tool",
+                    "name": function_name,
+                    "content": function_response,
+                }
+            )
+
+    # 5. Final Stream Response
+    # Stream the final answer (either direct or after tool use)
     def stream():
         full_response = ""
-        # Yield session ID first so frontend knows where to navigate/update
+        # Yield session ID first
         yield f"SESSION_ID:{session.id}\n"
         
-        for chunk in stream_chat(messages):
+        # If tool was used, we iterate again. 
+        # If no tool, messages is simple.
+        for chunk in stream_chat(messages, model=req.model):
             token = chunk.choices[0].delta.content or ""
             full_response += token
             yield token
         
         # Save Assistant Message
-        # We need a new DB session here because the generator runs outside the request context? 
-        # Actually usually it's safer to use a new session or keep the outer one open. 
-        # Simple approach: standard loop. DB session from Depends should still be valid if not closed.
-        # But StreamingResponse runs in a separate thread/task.
-        # Safer to create a new session just for saving this message.
         save_db = next(get_db())
         asst_msg = models.Message(session_id=session.id, role="assistant", content=full_response)
         save_db.add(asst_msg)

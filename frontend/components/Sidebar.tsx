@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { MessageSquare, Plus, LogOut, Trash2 } from 'lucide-react';
+import { MessageSquare, Plus, LogOut, Trash2, User, CreditCard } from 'lucide-react';
+
 import api from '../app/utils/api';
 import { useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 interface SidebarProps {
     currentSessionId: number | null;
@@ -13,6 +15,7 @@ interface SidebarProps {
 export default function Sidebar({ currentSessionId, onSelectSession }: SidebarProps) {
     const [sessions, setSessions] = useState<any[]>([]);
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         fetchHistory();
@@ -32,11 +35,21 @@ export default function Sidebar({ currentSessionId, onSelectSession }: SidebarPr
         router.push('/login');
     };
 
+    const handleNavigation = (id: number | null) => {
+        if (pathname === '/') {
+            onSelectSession(id);
+            // Optional: update URL to match state without reload?
+            // window.history.pushState({}, '', id ? `/?session=${id}` : '/');
+        } else {
+            router.push(id ? `/?session=${id}` : '/');
+        }
+    };
+
     return (
         <div className="w-64 bg-gray-900 text-white h-screen flex flex-col border-r border-gray-800">
             <div className="p-4">
                 <button
-                    onClick={() => onSelectSession(null)}
+                    onClick={() => handleNavigation(null)}
                     className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-md transition-all"
                 >
                     <Plus size={20} />
@@ -49,7 +62,7 @@ export default function Sidebar({ currentSessionId, onSelectSession }: SidebarPr
                 {sessions.map((s) => (
                     <div
                         key={s.id}
-                        onClick={() => onSelectSession(s.id)}
+                        onClick={() => handleNavigation(s.id)}
                         className={`p-3 rounded-md cursor-pointer flex items-center gap-3 mb-1 transition-colors ${currentSessionId === s.id ? 'bg-gray-800 text-white' : 'text-gray-400 hover:bg-gray-800/50'
                             }`}
                     >
@@ -59,8 +72,16 @@ export default function Sidebar({ currentSessionId, onSelectSession }: SidebarPr
                 ))}
             </div>
 
-            <div className="p-4 border-t border-gray-800">
-                <button onClick={handleLogout} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+            <div className="p-4 border-t border-gray-800 space-y-2">
+                <button onClick={() => router.push('/profile')} className="w-full flex items-center gap-2 text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-md">
+                    <User size={18} />
+                    <span>Profile</span>
+                </button>
+                <button onClick={() => router.push('/pricing')} className="w-full flex items-center gap-2 text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-md">
+                    <CreditCard size={18} />
+                    <span>Pricing</span>
+                </button>
+                <button onClick={handleLogout} className="w-full flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-gray-800 rounded-md">
                     <LogOut size={18} />
                     <span>Log out</span>
                 </button>

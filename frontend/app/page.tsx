@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '../components/Sidebar';
 import Chat from '../components/Chat';
 
 export default function Home() {
     const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -15,8 +16,15 @@ export default function Home() {
         const token = localStorage.getItem('token');
         if (!token) {
             router.push('/login');
+        } else {
+            const sessionParam = searchParams.get('session');
+            if (sessionParam) {
+                setCurrentSessionId(parseInt(sessionParam));
+            } else {
+                setCurrentSessionId(null);
+            }
         }
-    }, []);
+    }, [searchParams]);
 
     if (!mounted) return null;
 

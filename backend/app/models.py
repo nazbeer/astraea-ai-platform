@@ -9,6 +9,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+    request_count = Column(Integer, default=0)
+    tier = Column(String, default="Free") # "Free", "Pro"
+    is_premium = Column(Integer, default=0) # SQLite/SQLAlchemy Boolean as Integer often safer in simple setups, or just use tier
 
     sessions = relationship("ChatSession", back_populates="owner")
 
