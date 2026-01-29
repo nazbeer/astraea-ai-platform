@@ -1,16 +1,15 @@
 "use client";
 
+import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Sidebar from '../components/Sidebar';
-import Chat from '../components/Chat';
+import Sidebar from '@/components/Sidebar';
+import Chat from '@/components/Chat';
 
-import { Suspense } from 'react';
-
-function HomeContent() {
-    const [currentSessionId] = useState<string | null>(null);
-    const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
+export default function ChatPage() {
+    const params = useParams();
     const router = useRouter();
+    const sessionId = params.id as string;
+    const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -26,27 +25,19 @@ function HomeContent() {
     return (
         <div className="flex h-screen bg-black text-white font-sans overflow-hidden">
             <Sidebar
-                currentSessionId={currentSessionId}
+                currentSessionId={sessionId}
                 onSelectSession={(id) => id ? router.push(`/a/${id}`) : router.push('/')}
                 selectedModel={selectedModel}
             />
             <main className="flex-1 h-full relative">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-900/20 via-gray-900/0 to-gray-900/0 pointer-events-none" />
                 <Chat
-                    sessionId={currentSessionId}
+                    sessionId={sessionId}
                     onSessionCreated={(id) => router.push(`/a/${id}`)}
                     selectedModel={selectedModel}
                     onModelChange={setSelectedModel}
                 />
             </main>
         </div>
-    );
-}
-
-export default function Home() {
-    return (
-        <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>}>
-            <HomeContent />
-        </Suspense>
     );
 }

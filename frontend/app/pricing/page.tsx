@@ -5,69 +5,72 @@ import Sidebar from '@/components/Sidebar';
 
 export default function PricingPage() {
     return (
-        <div className="flex h-screen bg-black text-white font-sans overflow-hidden">
-            <Sidebar currentSessionId={null} onSelectSession={() => { }} />
-            <main className="flex-1 p-8 overflow-y-auto">
-                <div className="text-center mb-12">
-                    <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 mb-4">
-                        Choose Your Plan
+        <div className="flex h-screen bg-[var(--background)] text-[var(--foreground)] font-sans overflow-hidden">
+            <Sidebar currentSessionId={null} onSelectSession={() => { }} selectedModel="gpt-4o-mini" />
+            <main className="flex-1 px-6 py-2 lg:px-10 lg:py-2 overflow-y-auto scrollbar-none">
+                <div className="text-center mb-4 max-w-2xl mx-auto pt-2">
+                    <h1 className="text-5xl font-bold text-[var(--text-primary)] mb-3 ">
+                        Select a plan
                     </h1>
-                    <p className="text-gray-400">Unlock the full power of Astraea AI</p>
+                    <p className="text-[var(--text-secondary)] font-medium text-lg leading-relaxed">Choose the cognitive capacity that fits your neurological requirements.</p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto pb-10">
                     {/* Free Tier */}
-                    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 relative overflow-hidden">
-                        <h3 className="text-xl font-bold text-gray-300">Starter</h3>
-                        <div className="text-4xl font-bold mt-4 mb-2">$0</div>
-                        <p className="text-gray-500 text-sm mb-6">Forever free for individuals</p>
+                    <div className="bg-[var(--card)] border border-[var(--border)] rounded-[2.5rem] p-8 lg:p-10 shadow-xl transition-all hover:border-blue-500/20 group relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <h3 className="text-sm font-bold text-[var(--text-muted)] mb-8 ">Starter</h3>
+                        <div className="text-6xl font-bold mb-6 text-[var(--text-primary)] ">$0</div>
+                        <p className="text-sm text-[var(--text-secondary)] font-medium mb-10">Essential features for individual exploration and synthesis.</p>
 
-                        <ul className="space-y-4 mb-8">
-                            <li className="flex items-center gap-3 text-sm text-gray-300">
-                                <Check size={16} className="text-green-500" /> 100 Messages / day
+                        <ul className="space-y-5 mb-10 relative z-10 font-bold">
+                            <li className="flex items-center gap-4 text-[13px] text-[var(--text-secondary)]">
+                                <Check size={20} className="text-green-500" strokeWidth={3} /> 100 messages per day
                             </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-300">
-                                <Check size={16} className="text-green-500" /> Basic Math Tools
+                            <li className="flex items-center gap-4 text-[13px] text-[var(--text-secondary)]">
+                                <Check size={20} className="text-green-500" strokeWidth={3} /> Basic logic synthesis
                             </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-300">
-                                <Check size={16} className="text-green-500" /> GPT-3.5 Turbo
+                            <li className="flex items-center gap-4 text-[13px] text-[var(--text-secondary)]">
+                                <Check size={20} className="text-green-500" strokeWidth={3} /> GPT-3.5 core engine
                             </li>
-                            <li className="flex items-center gap-3 text-sm text-gray-500">
-                                <X size={16} /> No Search Access
+                            <li className="flex items-center gap-4 text-[13px] text-[var(--text-muted)] line-through">
+                                <X size={20} /> Web-link ingestion
                             </li>
                         </ul>
 
-                        <button className="w-full py-3 rounded-lg border border-gray-700 hover:bg-gray-800 transition-colors">
-                            Current Plan
+                        <button className="w-full py-5 rounded-2xl border border-[var(--border)] bg-[var(--input-bg)] text-[var(--text-muted)] font-bold text-[13px]  hover:bg-[var(--border)] transition-all relative z-10 transition-colors disabled pointer-events-none" >
+                            Current protocol
                         </button>
                     </div>
 
                     {/* Pro Tier */}
-                    <div className="bg-gradient-to-b from-gray-900 to-gray-900 border border-blue-500/30 rounded-2xl p-8 relative overflow-hidden shadow-2xl shadow-blue-900/10">
-                        <div className="absolute top-0 right-0 bg-blue-600 text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+                    <div className="bg-[var(--card)] border border-blue-600/30 rounded-[2.5rem] p-8 lg:p-10 relative overflow-hidden shadow-2xl transition-all hover:border-blue-500 group">
+                        <div className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold px-6 py-2.5 rounded-bl-3xl  shadow-lg">
                             Recommended
                         </div>
-                        <h3 className="text-xl font-bold text-white">Pro</h3>
-                        <div className="text-4xl font-bold mt-4 mb-2">$20<span className="text-lg text-gray-500 font-normal">/mo</span></div>
-                        <p className="text-blue-200/60 text-sm mb-6">For power users & pros</p>
+                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-600" />
 
-                        <ul className="space-y-4 mb-8">
-                            <li className="flex items-center gap-3 text-sm text-white">
-                                <Check size={16} className="text-blue-400" /> Unlimited Messages
+                        <h3 className="text-sm font-bold text-blue-500 mb-8 ">Astraea Pro</h3>
+                        <div className="text-6xl font-bold mb-6 text-[var(--text-primary)] ">$20<span className="text-2xl text-[var(--text-muted)] font-medium">/mo</span></div>
+                        <p className="text-sm text-[var(--text-secondary)] font-medium mb-10">Full cognitive capabilities for high-frequency power users.</p>
+
+                        <ul className="space-y-5 mb-10 relative z-10 font-bold">
+                            <li className="flex items-center gap-4 text-[13px] text-[var(--text-primary)]">
+                                <Check size={20} className="text-blue-500" strokeWidth={3} /> Unlimited messages
                             </li>
-                            <li className="flex items-center gap-3 text-sm text-white">
-                                <Check size={16} className="text-blue-400" /> Advanced Calculator
+                            <li className="flex items-center gap-4 text-[13px] text-[var(--text-primary)]">
+                                <Check size={20} className="text-blue-500" strokeWidth={3} /> Advanced reasoning engine
                             </li>
-                            <li className="flex items-center gap-3 text-sm text-white">
-                                <Check size={16} className="text-blue-400" /> GPT-4o Access
+                            <li className="flex items-center gap-4 text-[13px] text-[var(--text-primary)]">
+                                <Check size={20} className="text-blue-500" strokeWidth={3} /> GPT-4o prime access
                             </li>
-                            <li className="flex items-center gap-3 text-sm text-white">
-                                <Check size={16} className="text-blue-400" /> Web Search & RAG
+                            <li className="flex items-center gap-4 text-[13px] text-[var(--text-primary)]">
+                                <Check size={20} className="text-blue-500" strokeWidth={3} /> Real-time search & ingestion
                             </li>
                         </ul>
 
-                        <button className="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors font-semibold">
-                            Upgrade to Pro
+                        <button className="w-full py-5 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 transition-all font-bold text-[13px]  shadow-xl shadow-blue-500/25 relative z-10 active:scale-[0.98]">
+                            Upgrade now
                         </button>
                     </div>
                 </div>

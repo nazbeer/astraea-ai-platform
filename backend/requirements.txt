@@ -12,4 +12,7 @@ python-multipart
 google-auth
 google-auth-oauthlib
 requests
+pypdf
+python-docx
+Pillow
 

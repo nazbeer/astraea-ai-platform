@@ -1,0 +1,15 @@
+'use client';
+
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+export default function Providers({
+  children,
+  googleClientId,
+}: {
+  children: React.ReactNode;
+  googleClientId: string;
+}) {
+  return (
+    <GoogleOAuthProvider clientId={googleClientId}>{children}</GoogleOAuthProvider>
+  );
+}
