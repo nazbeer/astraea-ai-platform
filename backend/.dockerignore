@@ -1,0 +1,6 @@
+__pycache__
+aivenv
+.env
+sql_app.db
+.git
+.gitignore
