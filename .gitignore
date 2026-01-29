@@ -1,0 +1,23 @@
+# General
+.DS_Store
+*.log
+
+# Python / Backend
+__pycache__/
+*.pyc
+backend/aivenv/
+backend/.env
+backend/sql_app.db
+
+# Node / Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+frontend/.env
+frontend/build/
+frontend/dist/
+frontend/out/
+
+# IDEs
+.vscode/
+.idea/

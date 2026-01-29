@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+openai
+faiss-cpu
+numpy
+redis
+python-dotenv
+pydantic
+sqlalchemy
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
+

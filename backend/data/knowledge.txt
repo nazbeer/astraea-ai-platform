@@ -1,0 +1,4 @@
+Astraea AI Platform is an enterprise knowledge intelligence system.
+Pricing starts at $29 per month.
+Enterprise customers receive SLA-backed support.
+Integrations include GitHub, Slack, and Jira.
