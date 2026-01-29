@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '../components/Sidebar';
 import Chat from '../components/Chat';
 
-export default function Home() {
+import { Suspense } from 'react';
+
+function HomeContent() {
     const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -42,5 +44,13 @@ export default function Home() {
                 />
             </main>
         </div>
+    );
+}
+
+export default function Home() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>}>
+            <HomeContent />
+        </Suspense>
     );
 }
