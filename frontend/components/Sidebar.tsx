@@ -158,7 +158,7 @@ export default function Sidebar({ currentSessionId, onSelectSession, selectedMod
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        router.push('/login');
+        window.location.href = '/';  // Full reload to refresh auth state
     };
 
     const handleNavigation = (id: string | null) => {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Sidebar from '../components/Sidebar';
 import Chat from '../components/Chat';
-
+import LandingPage from './login/page';
 import { Suspense } from 'react';
 
 function HomeContent() {
@@ -12,17 +12,24 @@ function HomeContent() {
     const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
     const router = useRouter();
     const [mounted, setMounted] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
         setMounted(true);
         const token = localStorage.getItem('token');
-        if (!token) {
-            router.push('/login');
+        if (token) {
+            setIsAuthenticated(true);
         }
     }, []);
 
     if (!mounted) return null;
 
+    // Show landing page if not authenticated
+    if (!isAuthenticated) {
+        return <LandingPage />;
+    }
+
+    // Show chat interface if authenticated
     return (
         <div className="flex h-screen bg-black text-white font-sans overflow-hidden">
             <Sidebar
