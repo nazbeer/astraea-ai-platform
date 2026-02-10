@@ -3,16 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #111827;
-  --sidebar: #f9fafb;
-  --sidebar-border: rgba(0, 0, 0, 0.06);
-  --card: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #9ca3af;
-  --input-bg: #f3f4f6;
+  /* Dark mode by default */
+  --background: #0a0a0a;
+  --foreground: #f3f4f6;
+  --sidebar: #0a0a0a;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --card: #121212;
+  --border: rgba(255, 255, 255, 0.1);
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --input-bg: #1e1e1e;
 }
 
 .dark {
@@ -28,32 +29,82 @@
   --input-bg: #1e1e1e;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  html {
+    font-size: 13px;
+  }
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
   min-height: 100vh;
   letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force dark mode on html */
+html {
+  color-scheme: dark;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 @layer utilities {
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
 }
 
-/* Gemini-like glassmorphism and gradients */
-.gemini-glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Mobile-friendly touch targets */
+@media (max-width: 768px) {
+  button, a {
+    min-height: 36px;
+    min-width: 36px;
+  }
 }
 
-.gemini-gradient-text {
-  background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
 }
 
-.gemini-glow {
-  box-shadow: 0 0 30px rgba(79, 172, 254, 0.15);
+/* Better focus styles */
+*:focus-visible {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* Selection color */
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: white;
 }

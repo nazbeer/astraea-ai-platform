@@ -15,4 +15,6 @@ requests
 pypdf
 python-docx
 Pillow
-
+reportlab
+psycopg2-binary
+stripe>=7.0.0

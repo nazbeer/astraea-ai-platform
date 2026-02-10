@@ -1,196 +1,393 @@
-# Google OAuth Implementation - Changes Summary
-
-This document summarizes all changes made to implement Google OAuth SSO authentication.
+# Astraea AI Platform - Implementation Summary
 
 ## Overview
 
-The system has been migrated from username/password authentication to **Google OAuth 2.0 SSO**. Users now sign in exclusively using their Google accounts.
+This document summarizes all features implemented in the Astraea AI Platform, including the core AI chat functionality, Google OAuth authentication, and the comprehensive Job Hunting platform.
 
-## Backend Changes
+---
 
-### 1. Dependencies (`requirements.txt`)
-- **Removed**: `passlib[bcrypt]`, `bcrypt==4.0.1`
+## Table of Contents
+
+1. [Core AI Platform Features](#core-ai-platform-features)
+2. [Google OAuth Authentication](#google-oauth-authentication)
+3. [Job Hunting Platform](#job-hunting-platform)
+
+---
+
+## Core AI Platform Features
+
+### AI Chat & Agents
+- **Multi-Model Support**: GPT-4, GPT-4o Mini, GPT-3.5 Turbo, and custom models
+- **Streaming Responses**: Real-time token streaming for chat responses
+- **RAG (Retrieval-Augmented Generation)**: FAISS-based document retrieval
+- **AI Agents**: Autonomous agents with tool calling capabilities
+- **Custom Models**: User-trained models with custom knowledge bases
+- **Chat History**: Persistent chat sessions with search functionality
+
+### Memory & Context
+- **Redis-backed Memory**: Session-based conversation memory
+- **Context Window Management**: Intelligent message building for LLM context
+
+---
+
+## Google OAuth Authentication
+
+### Overview
+The system uses Google OAuth 2.0 SSO for authentication. Users sign in exclusively using their Google accounts.
+
+### Backend Changes
+
+#### Dependencies
 - **Added**: `google-auth`, `google-auth-oauthlib`, `requests`
 
-### 2. Database Model (`app/models.py`)
-**User Model Changes**:
-- **Removed**: `hashed_password` field
-- **Added**: 
-  - `email` (unique, indexed) - User's Google email
-  - `google_id` (unique, indexed) - Google user ID
-- **Modified**: `username` - Now stores display name from Google
+#### Database Model (`app/models.py`)
+- **User Model**:
+  - `email` - User's Google email
+  - `google_id` - Google user ID
+  - `username` - Display name from Google
+  - `user_type` - "candidate" or "organization"
 
-### 3. Schemas (`app/schemas.py`)
-- **Removed**: `UserCreate` schema (username/password)
-- **Added**: `GoogleAuthRequest` schema (Google OAuth token)
+#### API Endpoints
+- `POST /auth/google` - Google OAuth authentication
+- `GET /profile` - Get user profile
+- `PATCH /profile/user-type` - Update user type (candidate/organization)
 
-### 4. Authentication (`app/auth.py`)
-- **Removed**: 
-  - `pwd_context` (bcrypt password hashing)
-  - `verify_password()` function
-  - `get_password_hash()` function
-- **Added**:
-  - `GOOGLE_CLIENT_ID` configuration
-  - `verify_google_token()` function - Verifies Google OAuth tokens
+### Frontend Changes
+- **Added**: `@react-oauth/google`
+- **Modified**: Login page with Google Sign-In button
 
-### 5. Security (`app/security.py`)
-- **Modified**: `authenticate()` function now uses email instead of username for user lookup
+---
 
-### 6. Configuration (`app/config.py`)
-- **Added**: `GOOGLE_CLIENT_ID` setting from environment variable
+## Job Hunting Platform
 
-### 7. API Endpoints (`app/main.py`)
-- **Removed**:
-  - `POST /auth/signup` - Username/password signup
-  - `POST /auth/token` - Username/password login
-- **Added**:
-  - `POST /auth/google` - Google OAuth authentication endpoint
-    - Accepts Google OAuth token
-    - Creates new user or logs in existing user
-    - Returns JWT token for API access
-- **Modified**:
-  - `GET /profile` - Now includes email in response
+### Overview
+A comprehensive job hunting platform integrated with Astraea AI that serves both job seekers (candidates) and employers (organizations).
 
-## Frontend Changes
+### Features
 
-### 1. Dependencies (`package.json`)
-- **Added**: `@react-oauth/google@^0.12.1`
+#### For Candidates (Job Seekers)
+1. **Job Search & Discovery**
+   - Advanced filtering (location, remote/hybrid, salary, experience level, employment type)
+   - Keyword search across job titles and descriptions
+   - Job recommendations based on resume matching
+   - Save jobs for later
 
-### 2. Layout (`app/layout.tsx`)
-- **Added**: `GoogleOAuthProvider` wrapper for entire app
-- **Modified**: Made component client-side with `'use client'`
-- **Removed**: Static metadata export (incompatible with client components)
+2. **ATS-Friendly Resume Builder**
+   - Interactive resume builder with multiple sections
+   - Real-time ATS score calculation
+   - PDF and DOCX export with professional formatting
+   - Skills, experience, education, certifications, projects, languages
+   - Job preferences (salary, location, remote preference)
 
-### 3. Login Page (`app/login/page.tsx`)
-- **Completely rewritten** to use Google Sign-In button
-- **Removed**: 
-  - Username/password input fields
-  - Signup/login toggle
-  - Form submission logic
-- **Added**:
-  - `GoogleLogin` component from `@react-oauth/google`
-  - `handleGoogleSuccess()` - Processes Google OAuth response
-  - `handleGoogleError()` - Handles authentication errors
+3. **Job Applications**
+   - One-click apply with resume
+   - AI-generated cover letters
+   - Application tracking dashboard
+   - Match score showing compatibility with job
 
-## New Files Created
+#### For Organizations (Employers)
+1. **Company Profile**
+   - Company information and branding
+   - Industry, size, location details
 
-### 1. Backend Environment Template (`backend/.env.example`)
+2. **Job Posting Management**
+   - Create and manage job postings
+   - Set requirements, skills, salary range
+   - Track views and applications
+
+3. **Candidate Search**
+   - Search public resumes
+   - Filter by skills, location, ATS score
+   - AI-powered candidate matching
+
+4. **Application Management**
+   - Review incoming applications
+   - Match scores for each candidate
+   - Status tracking (pending, reviewing, shortlisted, hired, rejected)
+
+### Database Schema
+
+#### New Tables
+
+**Resume Table**
+- Personal info (name, email, phone, location)
+- Work experience (JSON array)
+- Education (JSON array)
+- Skills (JSON array)
+- Certifications (JSON array)
+- Projects (JSON array)
+- Languages (JSON array)
+- ATS score and keywords
+- Job preferences
+- PDF/DOCX URLs
+
+**Company Table**
+- Company details (name, description, website)
+- Industry and company size
+- Location and social links
+- Verification status
+
+**Job Table**
+- Job details (title, description, requirements)
+- Employment type and experience level
+- Location and remote options
+- Salary range and currency
+- Required and nice-to-have skills
+- Views and application counts
+- Status (active, paused, closed, draft)
+
+**JobApplication Table**
+- Candidate and job references
+- Cover letter and custom answers
+- Match score and reasons
+- Status tracking
+- Timeline (applied, reviewed dates)
+
+**SavedJob Table**
+- User and job references
+- Saved timestamp
+
+### Backend API Endpoints
+
+#### User Type Management
+- `PATCH /profile/user-type` - Set user as candidate or organization
+
+#### Resume Management
+- `GET /resume` - Get user's resume
+- `POST /resume` - Create/update resume
+- `PUT /resume` - Update resume fields
+- `POST /resume/generate-pdf` - Generate PDF resume
+- `POST /resume/generate-docx` - Generate DOCX resume
+- `GET /resume/ats-score` - Get ATS compatibility score
+
+#### Company Management
+- `POST /companies` - Create company profile
+- `GET /companies/my` - Get user's company
+- `PUT /companies/my` - Update company profile
+
+#### Job Management
+- `POST /jobs` - Create new job posting
+- `GET /jobs` - Search and filter jobs
+- `GET /jobs/:id` - Get job details
+- `PUT /jobs/:id` - Update job
+- `DELETE /jobs/:id` - Delete job
+- `GET /jobs/my/posted` - Get jobs posted by user
+
+#### Saved Jobs
+- `POST /jobs/:id/save` - Save job
+- `DELETE /jobs/:id/save` - Unsave job
+- `GET /jobs/saved/list` - Get saved jobs
+
+#### Job Applications
+- `POST /applications` - Apply to job
+- `GET /applications/my` - Get my applications
+- `GET /applications/received` - Get applications for my jobs (recruiters)
+- `PATCH /applications/:id` - Update application status
+
+#### Resume Search (Recruiters)
+- `POST /resumes/search` - Search candidate resumes
+- `POST /jobs/:id/match-candidates` - Find matching candidates
+
+#### Job Recommendations
+- `GET /jobs/recommended` - Get recommended jobs for candidate
+
+#### Metadata
+- `GET /jobs/metadata/categories` - Get job categories
+- `GET /jobs/metadata/employment-types` - Get employment types
+- `GET /jobs/metadata/experience-levels` - Get experience levels
+- `GET /jobs/metadata/company-sizes` - Get company size options
+
+### Frontend Pages
+
+#### Candidate Pages
+- `/jobs` - Job search and discovery
+- `/jobs/:id/apply` - Job application page
+- `/jobs/applications` - My applications
+- `/jobs/saved` - Saved jobs
+- `/resume/builder` - Resume builder
+
+#### Organization Pages
+- `/organization/dashboard` - Recruiter dashboard
+
+### Resume Generator Module
+
+**PDF Generation** (`backend/app/resume_generator.py`)
+- Uses ReportLab for professional PDF generation
+- ATS-friendly formatting
+- Clean, scannable layout
+- Proper spacing and typography
+
+**DOCX Generation**
+- Uses python-docx for Word document generation
+- Editable format for further customization
+- Professional styling
+
+**ATS Score Calculation**
+- Analyzes resume content for ATS compatibility
+- Checks for: contact info, summary, experience, skills, education
+- Provides suggestions for improvement
+- Extracts keywords for job matching
+
+### Matching Algorithm
+
+**Job-Resume Matching** (`backend/app/matching.py`)
+- Multi-factor scoring system:
+  - Skills match (40%): Required vs. nice-to-have skills
+  - Experience level (20%): Years of experience alignment
+  - Location (15%): Remote preference and location compatibility
+  - Keywords (15%): Semantic keyword matching
+  - Title similarity (10%): Previous role alignment
+
+- Features:
+  - Fuzzy skill matching (e.g., "JS" matches "JavaScript")
+  - Weighted scoring for required vs. nice-to-have
+  - Overqualification detection
+  - Match reasons explanation
+
+### Integration with Astraea AI
+
+The job platform is fully integrated with the existing Astraea AI platform:
+- Uses the same authentication system (Google OAuth + JWT)
+- Sidebar navigation includes job platform links
+- Consistent UI/UX with the main application
+- AI features can be used for:
+  - Generating cover letters
+  - Resume improvement suggestions
+  - Job description analysis
+
+### New Dependencies
+
+#### Backend
 ```
-APP_API_KEY=your_openai_api_key_here
+reportlab - PDF generation
+python-docx - DOCX generation
+```
+
+#### Frontend
+- No new dependencies required (uses existing Lucide icons)
+
+### File Structure
+
+```
+backend/
+├── app/
+│   ├── models.py           # Added Resume, Company, Job, JobApplication, SavedJob
+│   ├── schemas.py          # Added job platform schemas
+│   ├── main.py             # Added job platform endpoints
+│   ├── resume_generator.py # New: PDF/DOCX generation + ATS scoring
+│   └── matching.py         # New: Job-resume matching algorithm
+
+frontend/
+├── app/
+│   ├── jobs/
+│   │   ├── page.tsx        # Job search page
+│   │   ├── [id]/
+│   │   │   └── apply/
+│   │   │       └── page.tsx # Job application page
+│   │   ├── applications/
+│   │   │   └── page.tsx    # My applications
+│   │   └── saved/
+│   │       └── page.tsx    # Saved jobs
+│   ├── resume/
+│   │   └── builder/
+│   │       └── page.tsx    # Resume builder
+│   └── organization/
+│       └── dashboard/
+│           └── page.tsx    # Recruiter dashboard
+└── components/
+    └── Sidebar.tsx         # Updated with job platform navigation
+```
+
+### Usage Flow
+
+#### For Candidates
+1. Sign in with Google
+2. Navigate to "My Resume" to create/edit resume
+3. Check ATS score and export PDF/DOCX
+4. Browse "Find Jobs" to discover opportunities
+5. Apply to jobs with one click
+6. Track applications in "My Applications"
+
+#### For Organizations
+1. Sign in with Google
+2. Go to "Recruiter Dashboard"
+3. Create company profile
+4. Post job openings
+5. Review applications with match scores
+6. Search for candidates
+7. Update application statuses
+
+### Security Considerations
+
+- Resumes marked as public are searchable by organizations
+- Users control visibility with `is_public` flag
+- Job applications only visible to respective candidate and job poster
+- All endpoints require authentication
+- User type (candidate/organization) restricts certain features
+
+---
+
+## Environment Variables
+
+### Backend (.env)
+```
+APP_API_KEY=your_openai_api_key
 MODEL_NAME=gpt-4o-mini
 EMBED_MODEL=text-embedding-3-small
 RATE_LIMIT=20
-GOOGLE_CLIENT_ID=your_google_client_id_here.apps.googleusercontent.com
+GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
-### 2. Frontend Environment Template (`frontend/.env.local.example`)
+### Frontend (.env.local)
 ```
 NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id_here.apps.googleusercontent.com
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
-### 3. Setup Guide (`GOOGLE_OAUTH_SETUP.md`)
-Comprehensive step-by-step guide for:
-- Creating Google Cloud project
-- Configuring OAuth consent screen
-- Creating OAuth credentials
-- Configuring application
+---
 
-### 4. Migration Script (`backend/migrate_to_google_oauth.py`)
-Python script to migrate existing database:
-- Backs up existing users table
-- Creates new users table with Google OAuth fields
-- Provides rollback on errors
+## Migration Notes
 
-### 5. Updated README (`README.md`)
-- Added Google OAuth feature highlight
-- Updated setup instructions
-- Added authentication section
-- Updated API endpoints documentation
+For existing deployments adding the job platform:
 
-## Authentication Flow
-
-### Old Flow (Username/Password)
-1. User enters username and password
-2. Backend verifies password hash
-3. Returns JWT token
-
-### New Flow (Google OAuth)
-1. User clicks "Sign in with Google"
-2. Google OAuth popup appears
-3. User selects Google account
-4. Frontend receives Google OAuth token
-5. Frontend sends token to backend `/auth/google`
-6. Backend verifies token with Google
-7. Backend creates/updates user in database
-8. Backend returns JWT token
-9. Frontend stores JWT token
-10. User is authenticated
-
-## Security Improvements
-
-1. **No Password Storage**: Passwords are never stored in the database
-2. **Google's Security**: Leverages Google's robust authentication system
-3. **Token Verification**: Backend verifies tokens directly with Google
-4. **Automatic Updates**: User info (name, email) automatically updates on each login
-
-## Migration Path
-
-For existing deployments:
-
-1. **Install new dependencies**:
+1. **Install new backend dependencies**:
    ```bash
    cd backend
-   pip install google-auth google-auth-oauthlib requests
-   
-   cd ../frontend
-   yarn add @react-oauth/google
+   pip install reportlab
    ```
 
-2. **Setup Google OAuth** (see GOOGLE_OAUTH_SETUP.md)
+2. **Restart backend** - Database tables will be auto-created
 
-3. **Configure environment variables**:
-   - Add `GOOGLE_CLIENT_ID` to backend `.env`
-   - Add `NEXT_PUBLIC_GOOGLE_CLIENT_ID` to frontend `.env.local`
+3. **No frontend build required** - Uses existing dependencies
 
-4. **Migrate database**:
-   ```bash
-   cd backend
-   python migrate_to_google_oauth.py
-   ```
-
-5. **Restart services**
-
-## Breaking Changes
-
-⚠️ **Important**: This is a breaking change!
-
-- All existing users will need to sign in again with Google
-- Old username/password credentials will no longer work
-- User data is preserved but linked to Google accounts going forward
+---
 
 ## Testing Checklist
 
-- [ ] Google Sign-In button appears on login page
-- [ ] Clicking button opens Google OAuth popup
-- [ ] Successful authentication redirects to main app
-- [ ] User profile shows correct email and name
-- [ ] JWT token is stored in localStorage
-- [ ] Protected routes require authentication
-- [ ] Logout clears token and redirects to login
-- [ ] Multiple sign-ins with same Google account work correctly
-- [ ] Different Google accounts create different users
+### Job Platform
+- [ ] Create resume with all sections
+- [ ] Generate PDF and DOCX exports
+- [ ] Check ATS score
+- [ ] Search for jobs with filters
+- [ ] Save and unsave jobs
+- [ ] Apply to job with cover letter
+- [ ] View applications status
+- [ ] Create company profile
+- [ ] Post new job
+- [ ] Review applications as recruiter
+- [ ] Search candidate resumes
+- [ ] Match candidates to jobs
 
-## Environment Variables Required
+---
 
-### Backend
-- `GOOGLE_CLIENT_ID` - Google OAuth Client ID
+## Future Enhancements
 
-### Frontend
-- `NEXT_PUBLIC_GOOGLE_CLIENT_ID` - Google OAuth Client ID (same as backend)
-
-## Support
-
-For setup issues, refer to:
-- `GOOGLE_OAUTH_SETUP.md` - Detailed setup guide
-- Google OAuth documentation: https://developers.google.com/identity/protocols/oauth2
+Potential features to add:
+- Interview scheduling
+- Messaging between candidates and recruiters
+- Resume parsing from uploaded files
+- Advanced analytics for recruiters
+- Salary insights and comparisons
+- Skills assessments
+- Video introductions
+- Referral system

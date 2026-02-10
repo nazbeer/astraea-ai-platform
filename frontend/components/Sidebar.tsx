@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { MessageSquare, Plus, LogOut, Trash2, User, CreditCard, Brain, Menu, X, Search, Settings, Cpu } from 'lucide-react';
+import { MessageSquare, Plus, LogOut, Trash2, User, CreditCard, Brain, Menu, X, Search, Settings, Cpu, Briefcase, FileText, Building2, LayoutDashboard, Search as SearchIcon, Star, ChevronDown, Zap } from 'lucide-react';
+import { SubscriptionBadge } from './billing/SubscriptionBadge';
 
 import api from '../app/utils/api';
 import { useRouter } from 'next/navigation';
@@ -18,6 +19,7 @@ export default function Sidebar({ currentSessionId, onSelectSession, selectedMod
     const [searchQuery, setSearchQuery] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [isProfileExpanded, setIsProfileExpanded] = useState(false);
+    const [isJobsExpanded, setIsJobsExpanded] = useState(true); // Jobs menu expanded by default
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [appearance, setAppearance] = useState<'Light' | 'Dark' | 'System'>('Dark');
     const [isAppearanceDropdownOpen, setIsAppearanceDropdownOpen] = useState(false);
@@ -52,15 +54,9 @@ export default function Sidebar({ currentSessionId, onSelectSession, selectedMod
         const root = window.document.documentElement;
         if (typeof window === 'undefined') return;
 
-        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'Dark' : 'Light';
-        const effectiveTheme = theme === 'System' ? systemTheme : theme;
-
-        if (effectiveTheme === 'Dark') {
-            root.classList.add('dark');
-        } else {
-            root.classList.remove('dark');
-        }
-        localStorage.setItem('theme', theme);
+        // Force dark mode only
+        root.classList.add('dark');
+        localStorage.setItem('theme', 'Dark');
     };
 
     const handleAppearanceChange = (theme: 'Light' | 'Dark' | 'System') => {
@@ -195,7 +191,7 @@ export default function Sidebar({ currentSessionId, onSelectSession, selectedMod
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-[#0f0f0f] border border-white/5 rounded-xl text-gray-400 hover:text-white shadow-lg"
+                    className="lg:hidden fixed top-4 right-4 z-50 p-2.5 bg-[#0f0f0f] border border-white/5 rounded-xl text-gray-400 hover:text-white shadow-lg"
                 >
                     <Menu size={22} />
                 </button>
@@ -280,12 +276,92 @@ export default function Sidebar({ currentSessionId, onSelectSession, selectedMod
                                 <span className="font-medium">Models</span>
                             </button>
 
+                            {/* Job Platform Links - Show based on user type */}
+                            {profile?.user_type && (
+                                <div className="pt-2 border-t border-[var(--sidebar-border)]">
+                                    <p className="px-3 py-1 text-[10px] text-[var(--text-muted)] uppercase tracking-wider">
+                                        {profile.user_type === 'organization' ? 'Recruiting' : 'Career'}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Candidate-only links - Jobs Section */}
+                            {profile?.user_type === 'candidate' && (
+                                <div className="space-y-1">
+                                    {/* Jobs Header - Clickable to toggle */}
+                                    <button
+                                        onClick={() => setIsJobsExpanded(!isJobsExpanded)}
+                                        className={`w-full flex items-center justify-between text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all p-3 hover:bg-[var(--input-bg)] rounded-xl group text-sm ${pathname?.startsWith('/jobs') || pathname === '/resume/builder' ? 'bg-[var(--input-bg)] text-[var(--text-primary)]' : ''}`}
+                                    >
+                                        <div className="flex items-center gap-3.5">
+                                            <Briefcase size={18} className="group-hover:text-blue-500 transition-colors" />
+                                            <span className="font-medium">Jobs</span>
+                                        </div>
+                                        <ChevronDown 
+                                            size={16} 
+                                            className={`text-[var(--text-muted)] transition-transform duration-200 ${isJobsExpanded ? 'rotate-180' : ''}`}
+                                        />
+                                    </button>
+                                    
+                                    {/* Jobs Sub-menu */}
+                                    {isJobsExpanded && (
+                                        <div className="ml-4 pl-4 border-l border-[var(--sidebar-border)] space-y-1 animate-in slide-in-from-top-1 duration-200">
+                                            <button
+                                                onClick={() => { router.push('/jobs/dashboard'); setIsOpen(false); setIsProfileExpanded(false); }}
+                                                className={`w-full flex items-center gap-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all p-2.5 hover:bg-[var(--input-bg)] rounded-lg group text-xs ${pathname === '/jobs/dashboard' ? 'bg-[var(--input-bg)] text-[var(--text-primary)]' : ''}`}
+                                            >
+                                                <LayoutDashboard size={16} className="group-hover:text-blue-500 transition-colors" />
+                                                <span>Dashboard</span>
+                                            </button>
+                                            
+                                            <button
+                                                onClick={() => { router.push('/resume/builder'); setIsOpen(false); setIsProfileExpanded(false); }}
+                                                className={`w-full flex items-center gap-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all p-2.5 hover:bg-[var(--input-bg)] rounded-lg group text-xs ${pathname === '/resume/builder' ? 'bg-[var(--input-bg)] text-[var(--text-primary)]' : ''}`}
+                                            >
+                                                <FileText size={16} className="group-hover:text-green-500 transition-colors" />
+                                                <span>My Resume</span>
+                                            </button>
+                                            
+                                            <button
+                                                onClick={() => { router.push('/jobs'); setIsOpen(false); setIsProfileExpanded(false); }}
+                                                className={`w-full flex items-center gap-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all p-2.5 hover:bg-[var(--input-bg)] rounded-lg group text-xs ${pathname === '/jobs' || (pathname?.startsWith('/jobs/') && pathname !== '/jobs/dashboard' && !pathname?.includes('applications') && !pathname?.includes('recommended')) ? 'bg-[var(--input-bg)] text-[var(--text-primary)]' : ''}`}
+                                            >
+                                                <SearchIcon size={16} className="group-hover:text-cyan-500 transition-colors" />
+                                                <span>Search Jobs</span>
+                                            </button>
+                                            
+                                            <button
+                                                onClick={() => { router.push('/jobs/recommended'); setIsOpen(false); setIsProfileExpanded(false); }}
+                                                className={`w-full flex items-center gap-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all p-2.5 hover:bg-[var(--input-bg)] rounded-lg group text-xs ${pathname === '/jobs/recommended' ? 'bg-[var(--input-bg)] text-[var(--text-primary)]' : ''}`}
+                                            >
+                                                <Star size={16} className="group-hover:text-amber-500 transition-colors" />
+                                                <span>Recommended Jobs</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Organization-only links */}
+                            {profile?.user_type === 'organization' && (
+                                <button
+                                    onClick={() => { router.push('/organization/dashboard'); setIsOpen(false); setIsProfileExpanded(false); }}
+                                    className={`w-full flex items-center gap-3.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all p-3 hover:bg-[var(--input-bg)] rounded-xl group text-sm ${pathname === '/organization/dashboard' ? 'bg-[var(--input-bg)] text-[var(--text-primary)]' : ''}`}
+                                >
+                                    <Building2 size={18} className="group-hover:text-blue-500 transition-colors" />
+                                    <span className="font-medium">Recruiter Dashboard</span>
+                                </button>
+                            )}
+
+                            <div className="pt-2 border-t border-[var(--sidebar-border)]">
+                            </div>
+
                             <button
-                                onClick={() => { router.push('/pricing'); setIsOpen(false); setIsProfileExpanded(false); }}
-                                className={`w-full flex items-center gap-3.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all p-3 hover:bg-[var(--input-bg)] rounded-xl group text-sm ${pathname === '/pricing' ? 'bg-[var(--input-bg)] text-[var(--text-primary)]' : ''}`}
+                                onClick={() => { router.push('/billing'); setIsOpen(false); setIsProfileExpanded(false); }}
+                                className={`w-full flex items-center gap-3.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all p-3 hover:bg-[var(--input-bg)] rounded-xl group text-sm ${pathname === '/billing' ? 'bg-[var(--input-bg)] text-[var(--text-primary)]' : ''}`}
                             >
                                 <CreditCard size={18} className="group-hover:text-blue-500 transition-colors" />
-                                <span className="font-medium">Pricing</span>
+                                <span className="font-medium">Billing</span>
                             </button>
 
                             <button
@@ -319,10 +395,15 @@ export default function Sidebar({ currentSessionId, onSelectSession, selectedMod
                         </div>
                         <div className="flex-1 overflow-hidden">
                             <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{profile?.username || 'User'}</p>
-                            <p className="text-[11px] text-[var(--text-muted)] font-medium truncate flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                {getSelectedModelName()}
-                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                                {profile?.tier && <SubscriptionBadge tier={profile.tier} size="sm" />}
+                                {profile?.tier !== 'free' && profile?.credits_remaining !== undefined && profile?.credits_remaining !== -1 && (
+                                    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                        <Zap size={10} className="text-blue-500" />
+                                        {profile.credits_remaining}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
